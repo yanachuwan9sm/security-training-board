@@ -1,7 +1,7 @@
-// src/app/api/auth/register/route.ts
 import { generateToken } from '@/app/_utils/auth';
-import { db } from '@/app/_utils/db';
+import { prisma } from '@/app/_utils/prisma';
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
 
 export async function POST(req: Request) {
   try {
@@ -13,29 +13,31 @@ export async function POST(req: Request) {
     }
 
     // メールアドレスが既に使用されているかチェック
-    if (db.getUserByEmail(email)) {
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (existingUser) {
       return NextResponse.json({ error: 'Email already in use' }, { status: 400 });
     }
 
-    // 新しいユーザーを作成
-    const newUser = db.createUser({
-      username,
-      email,
-      password, 
-      membershipLevel: 'free'
+    const newUser = await prisma.user.create({
+      data: {
+        username,
+        email,
+        password: await bcrypt.hash(password, 10),
+        membershipLevel: "free"
+      }
     });
+
+    // await sessionStore.start({
+    // })
 
     // トークンを生成
     const token = generateToken(newUser);
 
     return NextResponse.json({ 
       token, 
-      user: {
-        id: newUser.id,
-        username: newUser.username,
-        email: newUser.email,
-        membershipLevel: newUser.membershipLevel
-      } 
     }, { 
       status: 201,
       headers: {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/app/_utils/db';
+import { prisma } from '@/app/_utils/prisma';
 import { getTokenFromRequest, verifyToken } from '@/app/_utils/auth';
 
 export async function POST(req: Request) {
@@ -31,7 +31,10 @@ export async function POST(req: Request) {
     console.log(`Processing payment for user ${user.id} to upgrade to ${membershipLevel}`);
     
     // ユーザーのメンバーシップレベルを更新
-    const updatedUser = db.updateUser(user.id, { membershipLevel });
+    const updatedUser = prisma.user.update({
+      where: { id: user.id },
+      data: { membershipLevel }
+    });
     
     if (!updatedUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

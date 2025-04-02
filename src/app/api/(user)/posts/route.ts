@@ -1,11 +1,11 @@
 import { getTokenFromRequest, verifyToken } from '@/app/_utils/auth';
-import { db } from '@/app/_utils/db';
+import { prisma } from '@/app/_utils/prisma';
 import { NextResponse } from 'next/server';
 
 // 全ての投稿を取得
 export async function GET() {
   try {
-    const posts = db.getPosts();
+    const posts = prisma.post.findMany();
     return NextResponse.json(posts);
   } catch (error) {
     console.error('Error fetching posts:', error);
@@ -33,10 +33,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Content is required' }, { status: 400 });
     }
 
-    const newPost = db.createPost({
-      userId: user.id,
-      author: user.username,
-      content // サニタイズしない
+    const newPost = prisma.post.create({
+      data: {
+        userId: user.id,
+        author: user.username,
+        content // サニタイズしない
+      }
     });
 
     return NextResponse.json(newPost, { status: 201 });

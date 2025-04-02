@@ -1,4 +1,4 @@
-import { db } from '@/app/_utils/db';
+import { prisma } from '@/app/_utils/prisma';
 import { generateToken } from '@/app/_utils/auth';
 
 export async function POST(req: Request) {
@@ -9,7 +9,9 @@ export async function POST(req: Request) {
       return Response.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    const user = db.getUserByEmail(email);
+    const user = prisma.user.findUnique({
+      where: { email }
+    });
 
     if(user === null){
         return Response.json({ error: 'Invalid email or password.' }, { status: 401 });
