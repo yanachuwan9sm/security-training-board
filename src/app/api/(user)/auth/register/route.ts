@@ -2,6 +2,7 @@ import { generateToken } from '@/app/_utils/auth';
 import { prisma } from '@/app/_utils/prisma';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { sessionStore } from '@/app/_utils/session/store';
 
 export async function POST(req: Request) {
   try {
@@ -30,8 +31,7 @@ export async function POST(req: Request) {
       }
     });
 
-    // await sessionStore.start({
-    // })
+    await sessionStore.set(newUser);
 
     // トークンを生成
     const token = generateToken(newUser);
